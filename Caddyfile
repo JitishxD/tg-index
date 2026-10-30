@@ -1,0 +1,51 @@
+{$DOMAIN:localhost} {
+	# compress only text-ish responses; media passes through untouched
+	encode zstd gzip {
+		match {
+			header Content-Type text/*
+			header Content-Type application/json*
+			header Content-Type application/javascript*
+		}
+	}
+
+	# security headers for every response
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy same-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+		-X-Powered-By
+	}
+	
+	# HSTS only on real domains (would pin localhost to HTTPS in your browser)
+	@public not host localhost 127.0.0.1
+	header @public Strict-Transport-Security "max-age=31536000"
+
+	# never let clients forge Next.js internal headers (middleware-bypass class of bugs)
+	request_header -X-Middleware-Subrequest
+	request_header -X-Middleware-Prefetch
+
+	# nothing legitimate posts more than a login form
+	request_body {
+		max_size 1MB
+	}
+
+	# signed media URLs → Bun server (no buffering, so seeking/streaming starts immediately)
+	@media path /stream/* /thumb/*
+	handle @media {
+		reverse_proxy server:8080 {
+			flush_interval -1
+		}
+	}
+
+	# the JSON API is internal (web → server over the docker network); never expose it
+	handle /api/* {
+		respond 404
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}
