@@ -123,6 +123,20 @@ You get SQLite FTS5 with the `unicode61 remove_diacritics` tokenizer. Every word
 - A **Telegram user account** that is a member of every channel you want to index.
 - `API_ID` / `API_HASH` from <https://my.telegram.org/apps>.
 
+### Tech stack
+
+| Layer | Technology |
+|---|---|
+| Language | **TypeScript** |
+| Server runtime | **Bun** |
+| Server framework | **Hono** |
+| Telegram client | **mtcute** (MTProto) |
+| Database | **SQLite** + **FTS5** via **Drizzle ORM** |
+| Frontend | **Next.js** (React, Server Components) |
+| Styling | **Tailwind CSS** |
+| Reverse proxy | **Caddy** (auto HTTPS) |
+| Containerisation | **Docker** + **Docker Compose** |
+
 <a id="deployment"></a>
 ## 🚀 Deployment
 
@@ -175,9 +189,9 @@ docker compose exec server sh -c 'apt-get -qq install -y sqlite3 >/dev/null; sql
 ### Local development
 ```bash
 cd server && bun install && bun run login && bun run dev        # :8080
-cd web && npm install && API_URL=http://localhost:8080 npm run dev  # :3000
+cd web && bun install && API_URL=http://localhost:8080 bun run dev  # :3000
 ```
-Both processes read the environment variables from your shell, so `export $(grep -v '^#' .env | xargs)` first. Typecheck with `bun run typecheck` in `server/` and `npm run typecheck` in `web/`.
+Both processes read the environment variables from your shell, so `export $(grep -v '^#' .env | xargs)` first. Typecheck with `bun run typecheck` in `server/` and `bun run typecheck` in `web/`.
 
 <a id="usage"></a>
 ## 🖥️ Usage
